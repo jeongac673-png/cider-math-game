@@ -54,7 +54,7 @@
 
                 <div class="login-card">
                     <label for="input-nickname">🧙‍♀️ 사이다반 톡톡이 닉네임을 입력하세요</label>
-                    <input type="text" id="input-nickname" placeholder="예: 상큼톡톡이" maxlength="8" value="사이다톡톡이">
+                    <input type="text" id="input-nickname" placeholder="예: 상큼톡톡이" maxlength="8" value="">
                     
                     <div class="auth-btn-group">
                         <button id="btn-start-game" class="btn-primary glow-btn" onclick="loginAnonymous()">익명으로 시작하기 🚀</button>
@@ -233,9 +233,13 @@
                     <p id="result-desc">축하합니다! 사이다반의 자랑스러운 톡톡이입니다.</p>
 
                     <div class="reward-box">
-                        <div class="reward-item">
+                        <div class="reward-item" id="reward-item-gold">
                             <span>획득한 골드</span>
                             <strong id="result-gold-earned">+50 G</strong>
+                        </div>
+                        <div class="reward-item hidden" id="reward-item-time">
+                            <span>클리어 소요 시간</span>
+                            <strong id="result-time-taken">0.0초</strong>
                         </div>
                     </div>
 
@@ -255,8 +259,9 @@
                     </div>
 
                     <div class="hof-tabs">
-                        <button id="tab-gold" class="tab-btn active" onclick="switchHofTab('gold')">💰 골드 부자 톡톡이 Top 10</button>
-                        <button id="tab-clear" class="tab-btn" onclick="switchHofTab('clear')">🏆 클리어 왕 톡톡이 Top 10</button>
+                        <button id="tab-gold" class="tab-btn active" onclick="switchHofTab('gold')">💰 골드 부자 Top 10</button>
+                        <button id="tab-clear" class="tab-btn" onclick="switchHofTab('clear')">🏆 클리어 왕 Top 10</button>
+                        <button id="tab-boss-time" class="tab-btn" onclick="switchHofTab('bossTime')">⏱️ 보스 스피드 Top 10</button>
                     </div>
 
                     <div class="hof-content">
@@ -277,7 +282,7 @@
 
                     <div class="my-rank-banner">
                         <span>내 닉네임: <strong id="my-hof-name">사이다톡톡이</strong></span>
-                        <span>기록: 골드 <strong id="my-hof-gold">0G</strong> | 클리어 <strong id="my-hof-clears">0회</strong></span>
+                        <span>기록: 골드 <strong id="my-hof-gold">0G</strong> | 클리어 <strong id="my-hof-clears">0회</strong> | 최고 스피드 <strong id="my-hof-time">-</strong></span>
                     </div>
                 </div>
             </section>

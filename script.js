@@ -11,6 +11,7 @@ let state = {
     gameTimer: null,
     score: 0,
     currentQuestion: null,
+    bossTime: null, // 최단 보스 클리어 소요시간 (초)
     // Minigame 2 Pizza state
     pizzaWholeTarget: 1,
     pizzaWholeSelected: 0,
@@ -114,10 +115,12 @@ function loadData() {
     const savedName = localStorage.getItem('cider_player_name');
     const savedGold = localStorage.getItem('cider_player_gold');
     const savedClears = localStorage.getItem('cider_player_clears');
+    const savedBossTime = localStorage.getItem('cider_player_bosstime');
 
     if (savedName) state.playerName = savedName;
     if (savedGold !== null) state.gold = parseInt(savedGold, 10);
     if (savedClears !== null) state.clears = parseInt(savedClears, 10);
+    if (savedBossTime !== null) state.bossTime = parseFloat(savedBossTime);
 
     if (!localStorage.getItem('cider_hof_data')) {
         localStorage.setItem('cider_hof_data', JSON.stringify([]));
@@ -128,6 +131,7 @@ function saveData() {
     localStorage.setItem('cider_player_name', state.playerName);
     localStorage.setItem('cider_player_gold', state.gold);
     localStorage.setItem('cider_player_clears', state.clears);
+    if (state.bossTime !== null) localStorage.setItem('cider_player_bosstime', state.bossTime);
     updateHofData();
 }
 
@@ -138,19 +142,27 @@ function updateHofData() {
     if (existingIndex !== -1) {
         hofList[existingIndex].gold = Math.max(hofList[existingIndex].gold, state.gold);
         hofList[existingIndex].clears = Math.max(hofList[existingIndex].clears, state.clears);
+        if (state.bossTime !== null) {
+            hofList[existingIndex].bossTime = hofList[existingIndex].bossTime ? Math.min(hofList[existingIndex].bossTime, state.bossTime) : state.bossTime;
+        }
     } else {
-        hofList.push({ name: state.playerName, gold: state.gold, clears: state.clears });
+        hofList.push({ name: state.playerName, gold: state.gold, clears: state.clears, bossTime: state.bossTime });
     }
 
     localStorage.setItem('cider_hof_data', JSON.stringify(hofList));
 
     if (state.isFirebaseActive) {
-        firebase.firestore().collection("cider_class_hof").doc(state.playerName).set({
+        let firestoreData = {
             name: state.playerName,
             gold: state.gold,
             clears: state.clears,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+        };
+        if (state.bossTime !== null) {
+            firestoreData.bossTime = state.bossTime;
+        }
+
+        firebase.firestore().collection("cider_class_hof").doc(state.playerName).set(firestoreData, { merge: true });
     }
 }
 
@@ -392,6 +404,8 @@ function finishMinigame(success, earnedGold = 50) {
         document.getElementById('result-desc').innerText = `시간이 다 되었습니다. 다시 도전해보세요!`;
         document.getElementById('result-gold-earned').innerText = `+0 G`;
     }
+    document.getElementById('reward-item-gold').classList.remove('hidden');
+    document.getElementById('reward-item-time').classList.add('hidden');
     showScreen('screen-result');
 }
 
@@ -664,6 +678,7 @@ function startBossRaid() {
     state.bossHp = 100;
     state.playerHp = 3;
     state.bossQIndex = 0;
+    state.bossStartTime = Date.now();
 
     state.bossQuestions = [];
     const types = ['proper', 'mixed_add', 'mixed_sub'];
@@ -777,13 +792,17 @@ function handleBossAnswer(isCorrect) {
 
 function finishBossBattle(victory) {
     clearInterval(state.bossTurnTimer);
+    let timeTakenStr = "0.0";
 
     if (victory) {
         playSound('win');
+        const timeTaken = ((Date.now() - state.bossStartTime) / 1000).toFixed(1);
+        timeTakenStr = timeTaken;
+        if (state.bossTime === null || timeTaken < state.bossTime) {
+            state.bossTime = parseFloat(timeTaken);
+        }
 
-        // Balanced Reward: +50 Gold (Requires playing minigames to reach 100G again!)
-        const prizeGold = 50;
-        state.gold += prizeGold;
+        // Balanced Reward: Only clears, no gold. Boss is for time attack ranking now.
         state.clears += 3;
         saveData();
         updateUI();
@@ -791,21 +810,40 @@ function finishBossBattle(victory) {
         document.getElementById('result-icon').innerText = '👑';
         document.getElementById('result-title').innerText = '정아쌤 보스전 통과!';
         document.getElementById('result-desc').innerText = '축하합니다! 정아쌤의 10문제를 멋지게 통과하셨습니다!';
-        document.getElementById('result-gold-earned').innerText = `+${prizeGold} G (미니게임에서 추가 골드를 모으세요!)`;
+        document.getElementById('result-time-taken').innerText = `${timeTaken}초`;
     } else {
         playSound('wrong');
         document.getElementById('result-icon').innerText = '👩‍🏫';
         document.getElementById('result-title').innerText = '보스전 실패!';
         document.getElementById('result-desc').innerText = '정아쌤: "괜찮아 톡톡아! 미니게임에서 조금 더 연습하고 도전하렴!"';
-        document.getElementById('result-gold-earned').innerText = `+0 G`;
+        document.getElementById('result-time-taken').innerText = `실패`;
     }
+    document.getElementById('reward-item-gold').classList.add('hidden');
+    document.getElementById('reward-item-time').classList.remove('hidden');
     showScreen('screen-result');
 }
 
 // --- 13. HALL OF FAME ---
-function openHallOfFame() {
+async function openHallOfFame() {
     playSound('click');
-    updateHofData();
+    updateHofData(); // 내 최신 데이터 로컬/리모트 갱신
+
+    if (state.isFirebaseActive) {
+        try {
+            const snapshot = await firebase.firestore().collection("cider_class_hof").get();
+            let remoteHof = [];
+            snapshot.forEach(doc => {
+                remoteHof.push(doc.data());
+            });
+            // 로컬 데이터 병합 없이 리모트 데이터를 최우선으로 갱신
+            if (remoteHof.length > 0) {
+                localStorage.setItem('cider_hof_data', JSON.stringify(remoteHof));
+            }
+        } catch (err) {
+            console.error("Firestore HOF fetch error:", err);
+        }
+    }
+
     renderHofList('gold');
     document.getElementById('screen-hall-of-fame').classList.remove('hidden');
 }
@@ -819,6 +857,7 @@ function switchHofTab(type) {
     playSound('click');
     document.getElementById('tab-gold').classList.toggle('active', type === 'gold');
     document.getElementById('tab-clear').classList.toggle('active', type === 'clear');
+    document.getElementById('tab-boss-time').classList.toggle('active', type === 'bossTime');
     renderHofList(type);
 }
 
@@ -831,9 +870,14 @@ function renderHofList(sortBy = 'gold') {
     if (sortBy === 'gold') {
         document.getElementById('hof-value-header').innerText = '보유 골드';
         hofList.sort((a, b) => b.gold - a.gold);
-    } else {
+    } else if (sortBy === 'clear') {
         document.getElementById('hof-value-header').innerText = '클리어 횟수';
         hofList.sort((a, b) => b.clears - a.clears);
+    } else {
+        document.getElementById('hof-value-header').innerText = '보스전 소요시간';
+        // null이 아닌 데이터만 모아서 정렬
+        hofList = hofList.filter(a => a.bossTime !== null && a.bossTime !== undefined);
+        hofList.sort((a, b) => a.bossTime - b.bossTime);
     }
 
     if (hofList.length === 0) {
@@ -855,10 +899,15 @@ function renderHofList(sortBy = 'gold') {
 
             const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`;
 
+            let displayValue = "";
+            if (sortBy === 'gold') displayValue = item.gold + ' G';
+            else if (sortBy === 'clear') displayValue = item.clears + '회';
+            else displayValue = item.bossTime + '초';
+
             tr.innerHTML = `
                 <td>${medal}</td>
                 <td>${item.name}</td>
-                <td>${sortBy === 'gold' ? item.gold + ' G' : item.clears + '회'}</td>
+                <td>${displayValue}</td>
                 <td>${item.clears}회</td>
             `;
             listBody.appendChild(tr);
@@ -868,4 +917,5 @@ function renderHofList(sortBy = 'gold') {
     document.getElementById('my-hof-name').innerText = state.playerName;
     document.getElementById('my-hof-gold').innerText = `${state.gold}G`;
     document.getElementById('my-hof-clears').innerText = `${state.clears}회`;
+    document.getElementById('my-hof-time').innerText = state.bossTime ? `${state.bossTime}초` : "-";
 }

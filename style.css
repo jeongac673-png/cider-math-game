@@ -484,8 +484,8 @@ main#main-container {
 .pizza-status { font-size: 1.3rem; font-weight: bold; }
 
 /* Game 3: OX Bridge */
-.bridge-workspace { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 16px; }
-.bridge-quiz-card { background: #fff9e6; border: 3px solid #fdcb6e; padding: 16px; border-radius: 16px; text-align: center; width: 100%; }
+.bridge-workspace { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 16px; background: linear-gradient(180deg, #74b9ff 0%, #0984e3 100%); padding: 20px; border-radius: 16px; box-shadow: inset 0 -10px 20px rgba(0,0,0,0.2); }
+.bridge-quiz-card { background: #fff9e6; border: 3px solid #fdcb6e; padding: 16px; border-radius: 16px; text-align: center; width: 100%; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
 .ox-buttons { display: flex; gap: 20px; width: 100%; justify-content: center; }
 
@@ -506,22 +506,27 @@ main#main-container {
 .btn-o { background: #55efc4; color: #00b894; }
 .btn-x { background: #ff7675; color: #d63031; }
 
-.bridge-track { display: flex; gap: 12px; margin-top: 10px; }
+.bridge-track { display: flex; gap: 10px; margin-top: 10px; background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 30px; box-shadow: 0 10px 15px rgba(0,0,0,0.3); perspective: 500px; }
 
 .step-tile {
-    width: 50px;
-    height: 50px;
-    background: #dfe4ea;
-    border-radius: 12px;
+    width: 60px;
+    height: 30px;
+    background: #e1b12c;
+    background-image: repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(0,0,0,0.1) 5px, rgba(0,0,0,0.1) 10px);
+    border-radius: 4px;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 0.9rem;
+    color: #fff;
     font-weight: bold;
-    border: 3px solid #b2bec3;
+    border: 2px solid #8c7ae6;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 2px 2px rgba(255,255,255,0.4);
+    transform: rotateX(20deg);
 }
 
-.step-tile.active { background: #74b9ff; border-color: #0984e3; color: #fff; }
-.character { font-size: 3.5rem; transition: transform 0.3s; }
+.step-tile.active { background: #44bd32; border-color: #27ae60; color: #fff; box-shadow: 0 0 15px #4cd137; transform: rotateX(0deg) scale(1.1); }
+.character { font-size: 3.5rem; transition: transform 0.3s; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); margin-bottom: -15px; z-index: 2; }
 
 /* CLEAN & ELEGANT BOSS ARENA (Single Character) */
 #screen-boss {
