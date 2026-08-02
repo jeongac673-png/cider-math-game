@@ -2,12 +2,13 @@
    🔑 FIREBASE CONFIGURATION & SECURITY SETUP
    ========================================================= */
 
-// Firebase 발급 프로젝트 설정 값 (선택 사항: 미입력 시 LocalStorage 모드로 동작)
+// 4학년 사이다반 톡톡이 분수 탐험대 - Firebase 연동 설정
 const firebaseConfig = {
-    apiKey: "YOUR_FIREBASE_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAqdTHRso4731gQJn7QrsndWfZ1feUNW6g",
+  authDomain: "cider-math.firebaseapp.com",
+  projectId: "cider-math",
+  storageBucket: "cider-math.firebasestorage.app",
+  messagingSenderId: "889558590273",
+  appId: "1:889558590273:web:0757daa03cd45ffafcb7c0",
+  measurementId: "G-KXHFQTL0Q2"
 };
