@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4학년 사이다반 | 톡톡이들의 분수 탐험대 (정아쌤을 이겨라!)</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts for Kids Arcade Styling -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic+Coding:wght@700&family=Single+Day&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK (v10 compat mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Background Decor Stars & Sparkling Bubbles -->
+        <div class="bg-stars"></div>
+        <div class="bg-bubbles"></div>
+
+        <!-- Header / Player Status Bar -->
+        <header id="status-bar" class="hidden">
+            <div class="user-info">
+                <span class="user-avatar">🥤</span>
+                <span id="player-name-display">톡톡이</span>
+                <span class="class-badge">사이다반</span>
+            </div>
+            <div class="stats">
+                <div class="stat-box gold-box">
+                    <span class="icon">💰</span>
+                    <span id="player-gold">0</span> G
+                </div>
+                <div class="stat-box clear-box">
+                    <span class="icon">🏆</span>
+                    <span id="player-clears">0</span> 회 클리어
+                </div>
+            </div>
+            <button id="btn-hall-of-fame-top" class="btn-icon-label" onclick="openHallOfFame()">🏛️ 명예의 전당</button>
+        </header>
+
+        <!-- Main Container / Views -->
+        <main id="main-container">
+
+            <!-- 1. START / LOGIN SCREEN -->
+            <section id="screen-start" class="screen active">
+                <div class="title-card">
+                    <div class="badge">🥤 4학년 사이다반 전용 톡톡이 수학 탐험대</div>
+                    <h1>✨ 톡톡이들의 분수 탐험대 ✨<br><span class="subtitle">👩‍🏫 정아쌤을 이겨라! ✨</span></h1>
+                    <p class="desc">진분수 & 대분수의 덧셈과 뺄셈을 정복하고 사이다반 최고 톡톡이가 되자!</p>
+                </div>
+
+                <div class="login-card">
+                    <label for="input-nickname">🧙‍♀️ 사이다반 톡톡이 닉네임을 입력하세요</label>
+                    <input type="text" id="input-nickname" placeholder="예: 상큼톡톡이" maxlength="8" value="사이다톡톡이">
+                    
+                    <div class="auth-btn-group">
+                        <button id="btn-start-game" class="btn-primary glow-btn" onclick="loginAnonymous()">익명으로 시작하기 🚀</button>
+                        <button id="btn-google-login" class="btn-google" onclick="loginGoogle()">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Google로 로그인
+                        </button>
+                    </div>
+
+                    <div id="auth-status-msg" class="auth-status-msg"></div>
+                </div>
+            </section>
+
+            <!-- 2. GAME LOBBY SCREEN -->
+            <section id="screen-lobby" class="screen hidden">
+                <div class="lobby-header">
+                    <h2>🎮 미니게임 선택 (20~30초 타임어택)</h2>
+                    <p>난이도가 높을수록 더 많은 💰 골드를 획득할 수 있어요!</p>
+                </div>
+
+                <div class="minigame-cards">
+                    <!-- Minigame 1 Card -->
+                    <div class="card minigame-card" data-game="1">
+                        <div class="card-tag">⏱️ 20초 | 기본</div>
+                        <div class="card-icon">🎈</div>
+                        <h3>1. 분수 젤리 팡팡</h3>
+                        <div class="card-subtext">진분수의 덧셈과 뺄셈</div>
+                        <p>떠오르는 젤리 중 정답 분수를 빠르게 터뜨리세요!</p>
+                        <div class="card-reward">+40 ~ 50 G</div>
+                        <button class="btn-play" onclick="startGame(1)">도전하기!</button>
+                    </div>
+
+                    <!-- Minigame 2 Card -->
+                    <div class="card minigame-card" data-game="2">
+                        <div class="card-tag tag-hard">⏱️ 25초 | 심화</div>
+                        <div class="card-icon">🍕</div>
+                        <h3>2. 피자 판 완성하기</h3>
+                        <div class="card-subtext">대분수의 덧셈</div>
+                        <p>대분수 합만큼 전체 피자 판과 조각을 완벽하게 맞추세요!</p>
+                        <div class="card-reward reward-high">+70 ~ 80 G</div>
+                        <button class="btn-play" onclick="startGame(2)">도전하기!</button>
+                    </div>
+
+                    <!-- Minigame 3 Card -->
+                    <div class="card minigame-card" data-game="3">
+                        <div class="card-tag tag-master">⏱️ 30초 | 마스터</div>
+                        <div class="card-icon">🏃</div>
+                        <h3>3. O/X 다리 건너기</h3>
+                        <div class="card-subtext">대분수의 뺄셈</div>
+                        <p>대분수 뺄셈 식이 맞는지 참/거짓 판단하며 다리를 탈출하세요!</p>
+                        <div class="card-reward reward-super">+80 ~ 100 G</div>
+                        <button class="btn-play" onclick="startGame(3)">도전하기!</button>
+                    </div>
+                </div>
+
+                <!-- Boss Raid Banner -->
+                <div class="boss-banner-card">
+                    <div class="boss-img">👩‍🏫</div>
+                    <div class="boss-info">
+                        <h3>🔥 담임선생님 [정아쌤]의 보스전 퀴즈! 🔥</h3>
+                        <p>진분수·대분수 덧셈과 뺄셈 10문제를 완벽하게 풀어 정아쌤을 놀라게 해보세요! (입장료: <strong>100 Gold</strong>)</p>
+                    </div>
+                    <button id="btn-challenge-boss" class="btn-boss glow-boss-btn" onclick="startBossRaid()">정아쌤 도전하기 (100G)</button>
+                </div>
+            </section>
+
+            <!-- 3. MINIGAME 1 -->
+            <section id="screen-game1" class="screen minigame-screen hidden">
+                <div class="game-top-bar">
+                    <div class="timer-badge">⏱️ <span id="g1-timer">20</span>초</div>
+                    <div class="score-badge">⭐ 점수: <span id="g1-score">0</span></div>
+                    <button class="btn-quit" onclick="quitGame()">기권</button>
+                </div>
+
+                <div class="quiz-box">
+                    <span class="quiz-label">다음 진분수 덧셈/뺄셈의 정답 젤리를 터뜨리세요!</span>
+                    <div id="g1-question" class="math-question">1/5 + 2/5 = ?</div>
+                </div>
+
+                <div id="g1-jelly-container" class="jelly-field">
+                    <!-- Floating Jelly Buttons inserted via JS -->
+                </div>
+            </section>
+
+            <!-- 4. MINIGAME 2 -->
+            <section id="screen-game2" class="screen minigame-screen hidden">
+                <div class="game-top-bar">
+                    <div class="timer-badge">⏱️ <span id="g2-timer">25</span>초</div>
+                    <div class="score-badge">⭐ 완성: <span id="g2-score">0</span>개</div>
+                    <button class="btn-quit" onclick="quitGame()">기권</button>
+                </div>
+
+                <div class="quiz-box">
+                    <span class="quiz-label">대분수 덧셈 문제의 결과에 맞춰 피자 조각을 채우세요!</span>
+                    <div id="g2-question" class="math-question">1 2/5 + 1 1/5</div>
+                </div>
+
+                <div class="pizza-workspace">
+                    <div class="pizza-display-area">
+                        <div id="whole-pizza-container" class="whole-pizzas"></div>
+                        <div id="pizza-board" class="pizza-board"></div>
+                    </div>
+                    <div class="pizza-status">
+                        전체 완성: <span id="pizza-selected-count">0</span> / <span id="pizza-total-count">5</span> 조각
+                    </div>
+                    <button id="btn-submit-pizza" class="btn-primary" onclick="submitPizza()">피자 제출하기 🍕</button>
+                </div>
+            </section>
+
+            <!-- 5. MINIGAME 3 -->
+            <section id="screen-game3" class="screen minigame-screen hidden">
+                <div class="game-top-bar">
+                    <div class="timer-badge">⏱️ <span id="g3-timer">30</span>초</div>
+                    <div class="score-badge">🏃 위치: <span id="g3-step">0</span> / 5 단계</div>
+                    <button class="btn-quit" onclick="quitGame()">기권</button>
+                </div>
+
+                <div class="bridge-workspace">
+                    <div id="bridge-character" class="character">🏃‍♂️</div>
+                    
+                    <div class="bridge-quiz-card">
+                        <div class="quiz-label">이 대분수 뺄셈 식이 올바른가요?</div>
+                        <div id="g3-question" class="math-question">2 4/7 - 1 2/7 = 1 2/7</div>
+                    </div>
+
+                    <div class="ox-buttons">
+                        <button class="btn-ox btn-o" onclick="chooseOX(true)">⭕ 참 (맞다)</button>
+                        <button class="btn-ox btn-x" onclick="chooseOX(false)">❌ 거짓 (틀리다)</button>
+                    </div>
+
+                    <div id="bridge-track" class="bridge-track">
+                        <!-- Bridge steps visual -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. BOSS BATTLE SCREEN -->
+            <section id="screen-boss" class="screen hidden">
+                <div class="boss-header">
+                    <div class="hp-bar-container">
+                        <div class="hp-label">👩‍🏫 정아쌤 HP</div>
+                        <div class="hp-bar-bg boss-hp-bg"><div id="boss-hp-bar" class="hp-bar-fill boss-hp-fill" style="width: 100%;"></div></div>
+                        <span id="boss-hp-text" class="boss-hp-text">100 / 100</span>
+                    </div>
+                    <div class="boss-quiz-counter">
+                        문제 <span id="boss-q-index">1</span> / 10
+                    </div>
+                    <div class="hp-bar-container player-hp">
+                        <div class="hp-label">🥤 톡톡이 체력</div>
+                        <div id="player-hearts" class="hearts">❤️❤️❤️</div>
+                    </div>
+                </div>
+
+                <div class="boss-arena">
+                    <div class="boss-avatar-wrapper">
+                        <div id="boss-sprite" class="boss-sprite">👩‍🏫</div>
+                        <div id="boss-speech" class="speech-bubble boss-speech-bubble">"우리 사이다반 톡톡이! 이번 문제도 맞힐 수 있지?"</div>
+                    </div>
+
+                    <div class="boss-question-card">
+                        <div id="boss-question-type" class="boss-q-tag">🔥 보스 퀴즈 [진분수 덧셈]</div>
+                        <div id="boss-question" class="math-question-large">2 3/8 + 1 2/8 = ?</div>
+                        <div class="boss-timer-line"><div id="boss-turn-timer" class="turn-timer-fill"></div></div>
+
+                        <div id="boss-options" class="boss-options-grid">
+                            <!-- 4 Multiple choices generated via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. RESULT / REWARD MODAL SCREEN -->
+            <section id="screen-result" class="screen hidden">
+                <div class="result-card">
+                    <div id="result-icon" class="result-icon">🎉</div>
+                    <h2 id="result-title">미니게임 클리어!</h2>
+                    <p id="result-desc">축하합니다! 사이다반의 자랑스러운 톡톡이입니다.</p>
+
+                    <div class="reward-box">
+                        <div class="reward-item">
+                            <span>획득한 골드</span>
+                            <strong id="result-gold-earned">+50 G</strong>
+                        </div>
+                    </div>
+
+                    <div class="result-actions">
+                        <button class="btn-primary" onclick="showScreen('screen-lobby')">로비로 돌아가기 🏰</button>
+                        <button class="btn-secondary" onclick="openHallOfFame()">명예의 전당 🏆</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 8. HALL OF FAME MODAL -->
+            <section id="screen-hall-of-fame" class="screen hidden">
+                <div class="hof-card">
+                    <div class="hof-header">
+                        <h2>🏛️ 4학년 사이다반 명예의 전당</h2>
+                        <button class="btn-close-hof" onclick="closeHallOfFame()">✖</button>
+                    </div>
+
+                    <div class="hof-tabs">
+                        <button id="tab-gold" class="tab-btn active" onclick="switchHofTab('gold')">💰 골드 부자 톡톡이 Top 10</button>
+                        <button id="tab-clear" class="tab-btn" onclick="switchHofTab('clear')">🏆 클리어 왕 톡톡이 Top 10</button>
+                    </div>
+
+                    <div class="hof-content">
+                        <table class="hof-table">
+                            <thead>
+                                <tr>
+                                    <th>순위</th>
+                                    <th>톡톡이 닉네임</th>
+                                    <th id="hof-value-header">보유 골드</th>
+                                    <th>클리어 횟수</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hof-list-body">
+                                <!-- Leaderboard rows inserted via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="my-rank-banner">
+                        <span>내 닉네임: <strong id="my-hof-name">사이다톡톡이</strong></span>
+                        <span>기록: 골드 <strong id="my-hof-gold">0G</strong> | 클리어 <strong id="my-hof-clears">0회</strong></span>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="firebaseConfig.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

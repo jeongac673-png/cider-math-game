@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. 4학년 사이다반 명예의 전당 (Leaderboard) Rules
+    match /cider_class_hof/{docId} {
+      // 누구나 명예의 전당 랭킹 목록을 볼 수 있음
+      allow read: if true;
+      
+      // 로그인된 사용자(익명 또는 Google)만 본인의 기록 등록/갱신 가능
+      allow write: if request.auth != null;
+    }
+    
+    // 2. 사용자 개별 데이터 (Private Player Data) Rules
+    match /users/{userId} {
+      // 본인만 본인의 개별 데이터 읽기/쓰기 가능 (사용자 데이터 안전 분리)
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

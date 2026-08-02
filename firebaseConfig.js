@@ -1,0 +1,13 @@
+/* =========================================================
+   🔑 FIREBASE CONFIGURATION & SECURITY SETUP
+   ========================================================= */
+
+// Firebase 발급 프로젝트 설정 값 (선택 사항: 미입력 시 LocalStorage 모드로 동작)
+const firebaseConfig = {
+    apiKey: "YOUR_FIREBASE_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
