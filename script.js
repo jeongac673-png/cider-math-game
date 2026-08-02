@@ -5,7 +5,7 @@
 // --- 1. GAME STATE & CONSTANTS ---
 let state = {
     playerName: "사이다톡톡이",
-    gold: 50, // Initial Gold 50G
+    gold: 0, // Initial Gold 0G
     clears: 0,
     activeMinigame: 0,
     gameTimer: null,
@@ -34,23 +34,15 @@ let state = {
 const DEFAULT_LEADERBOARD = [];
 
 // --- 2. FIREBASE INTEGRATION SETUP ---
-const firebaseConfig = {
-    apiKey: "YOUR_FIREBASE_API_KEY",
-    authDomain: "cider-math.firebaseapp.com",
-    projectId: "cider-math",
-    storageBucket: "cider-math.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdef"
-};
-
+// firebaseConfig is declared in firebaseConfig.js (loaded before this script)
 try {
-    if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "YOUR_FIREBASE_API_KEY") {
+    if (typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined') {
         firebase.initializeApp(firebaseConfig);
         state.isFirebaseActive = true;
-        console.log("Firebase connected successfully!");
+        console.log("✅ Firebase 연결 성공! (cider-math project)");
     }
 } catch (e) {
-    console.log("Firebase running in LocalStorage mode.");
+    console.warn("⚠️ Firebase 연결 실패 - LocalStorage 모드로 실행합니다.", e);
 }
 
 // --- 3. AUDIO SYNTHESIZER ---
